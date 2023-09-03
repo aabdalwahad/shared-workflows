@@ -68,7 +68,7 @@ jobs:
           exit 1
 
       - name: Report Workflow Status
-        if: ${{ always() }}
+        if: always()
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -77,7 +77,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: github.sha,
-              state: 'success',  # or 'failure' as appropriate
+              state: ${{ job.status }} == 'success' ? 'success' : 'failure',
               context: 'PR Validation',
               description: 'Validation completed',
             })
