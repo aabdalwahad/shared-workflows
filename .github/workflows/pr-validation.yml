@@ -1,9 +1,11 @@
 name: PR Title, Description, and Commit Messages Validation
 
 on:
+  repository_dispatch:
+    types:
+      - trigger-pr-validation
   pull_request:
     types: [opened, synchronize, reopened, edited]
-
 jobs:
   validate_pr:
     runs-on: ubuntu-latest
