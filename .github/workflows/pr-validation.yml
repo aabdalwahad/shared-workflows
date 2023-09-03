@@ -1,24 +1,67 @@
-name: Use Shared Workflow
+name: PR Title, Description, and Commit Messages Validation
 
 on:
-  workflow_run:
-    workflows: ["shared-workflows/pr-validation.yml"]
-    types:
-      - completed
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
-  trigger_shared_workflow:
+  validate_pr:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Trigger Shared Workflow
-      uses: actions/github-script@v5
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const response = await octokit.actions.createWorkflowDispatch({
-            owner: 'aabdalwahad', // Replace with your shared repository owner
-            repo: 'shared-workflows',  // Replace with your shared repository name
-            workflow_id: 'pr-validation.yml'  // Replace with the shared workflow filename
-          });
-          console.log(response);
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get PR Title, Description, and Commits
+        run: |
+          title=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                 "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                 | jq -r '.title')
+          description=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                       "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                       | jq -r '.body')
+          commits=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                   "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+                   | jq -r '.[].commit.message')
+          
+          echo "PR Title: $title"
+          echo "PR Description: $description"
+          echo "Commits:"
+          echo "$commits"
+          
+          title_pattern="^BA-[0-9]+ .*"
+          description_min_length=20
+          commit_message_pattern="^BA-[0-9]+ .*"
+          
+          if [[ ! $title =~ $title_pattern ]]; then
+            echo "PR title does not follow the pattern. Please use 'BA-### Your title.'"
+            exit 1
+          fi
+          
+          if [[ ${#description} -lt $description_min_length ]]; then
+            echo "PR description should be at least $description_min_length characters."
+            exit 1
+          fi
+          
+          non_matching_commits=()
+          IFS=$'\n'
+          for commit in $commits; do
+            if [[ ! $commit =~ $commit_message_pattern ]]; then
+              non_matching_commits+=("$commit")
+            fi
+          done
+          unset IFS
+          
+          if [[ ${#non_matching_commits[@]} -gt 0 ]]; then
+            echo "The following commit messages do not match the pattern:"
+            for non_matching_commit in "${non_matching_commits[@]}"; do
+              echo "- $non_matching_commit"
+            done
+            exit 1
+          fi
+
+      - name: Set Status Check
+        if: ${{ failure() }}
+        run: |
+          echo "The PR title, description, or commit message validation failed."
+          exit 1
