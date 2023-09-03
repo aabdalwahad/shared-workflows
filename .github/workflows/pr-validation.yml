@@ -4,8 +4,7 @@ on:
   repository_dispatch:
     types:
       - trigger-pr-validation
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
+
 jobs:
   validate_pr:
     runs-on: ubuntu-latest
@@ -17,13 +16,13 @@ jobs:
       - name: Get PR Title, Description, and Commits
         run: |
           title=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                 "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                 "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}" \
                  | jq -r '.title')
           description=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                       "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}" \
+                       "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}" \
                        | jq -r '.body')
           commits=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                   "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+                   "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}/commits" \
                    | jq -r '.[].commit.message')
           
           echo "PR Title: $title"
@@ -67,3 +66,18 @@ jobs:
         run: |
           echo "The PR title, description, or commit message validation failed."
           exit 1
+
+      - name: Report Workflow Status
+        if: ${{ always() }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.repos.createStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: github.sha,
+              state: 'success',  # or 'failure' as appropriate
+              context: 'PR Validation',
+              description: 'Validation completed',
+            })
