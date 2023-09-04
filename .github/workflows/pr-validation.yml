@@ -53,3 +53,14 @@ jobs:
         run: |
           echo "The PR title, description, or commit message validation failed."
           echo "::error::Validation failed"
+
+      - name: Report Workflow Status
+        if: ${{ always() }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Set the workflow run ID as an output
+            core.setOutput('workflow_run_id', process.env.WorkflowRunID);
+
+
