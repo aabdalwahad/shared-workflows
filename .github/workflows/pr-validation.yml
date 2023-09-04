@@ -16,6 +16,7 @@ jobs:
           title_pattern="^BA-[0-9]+ .*"
           description_min_length=20
           commit_message_pattern="^BA-[0-9]+ .*"
+
           
           if [[ ! ${{ github.event.client_payload.pr_title }} =~ $title_pattern ]]; then
             echo "PR title does not follow the pattern. Please use 'BA-### Your title.'"
