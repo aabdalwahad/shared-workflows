@@ -7,30 +7,33 @@ on:
       - trigger-pr-validation
 
 jobs:
-  validatee_pr:
+  validate_pr:
     runs-on: ubuntu-latest
 
     steps:
       - name: Get PR Title, Description, and Commits
-        run: |          
+        env:
+          title: ${{ github.event.client_payload.pr_title }}
+          description: ${{ github.event.client_payload.pr_description }}
+          commits: ${{ github.event.client_payload.pr_commits }}
+        run: |
           title_pattern="^BA-[0-9]+ .*"
           description_min_length=20
           commit_message_pattern="^BA-[0-9]+ .*"
-
           
-          if [[ ! ${{ github.event.client_payload.pr_title }} =~ $title_pattern ]]; then
+          if [[ !  $title =~ $title_pattern ]]; then
             echo "PR title does not follow the pattern. Please use 'BA-### Your title.'"
             exit 1
           fi
           
-          if [[ #${{ github.event.client_payload.pr_description }} -lt $description_min_length ]]; then
+          if [[ ${#description} -lt $description_min_length ]]; then
             echo "PR description should be at least $description_min_length characters."
             exit 1
           fi
           
           non_matching_commits=()
           IFS=$'\n'
-          for commit in ${{ github.event.client_payload.pr_commits }}; do
+          for commit in $commits; do
             if [[ ! $commit =~ $commit_message_pattern ]]; then
               non_matching_commits+=("$commit")
             fi
