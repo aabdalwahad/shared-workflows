@@ -21,14 +21,9 @@ jobs:
           description=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}" \
                        "https://api.github.com/repos/${{ github.event.client_payload.repo_name }}/pulls/${{ github.event.client_payload.pr_number }}" \
                        | jq -r '.body')
-          commits=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}" \
-                   "https://api.github.com/repos/${{ github.event.client_payload.repo_name }}/pulls/${{ github.event.client_payload.pr_number }}/commits" \
-                   | jq -r '.[].commit.message')
           
           echo "PR Title: $title"
           echo "PR Description: $description"
-          echo "Commits:"
-          echo "$commits"
           
           title_pattern="^BA-[0-9]+ .*"
           description_min_length=20
@@ -44,22 +39,6 @@ jobs:
             exit 1
           fi
           
-          non_matching_commits=()
-          IFS=$'\n'
-          for commit in $commits; do
-            if [[ ! $commit =~ $commit_message_pattern ]]; then
-              non_matching_commits+=("$commit")
-            fi
-          done
-          unset IFS
-          
-          if [[ ${#non_matching_commits[@]} -gt 0 ]]; then
-            echo "The following commit messages do not match the pattern:"
-            for non_matching_commit in "${non_matching_commits[@]}"; do
-              echo "- $non_matching_commit"
-            done
-            exit 1
-          fi
 
       - name: Set Status Check
         if: ${{ failure() }}
