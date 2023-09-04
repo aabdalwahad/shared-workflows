@@ -65,18 +65,18 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const github = require('@actions/github');
+            const github1 = require('@actions/github');
 
             const status = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              sha: github.sha,
+              sha: github1.sha,
               state: 'success',  // or 'failure' as appropriate
               context: 'PR Validation',
               description: 'Validation completed',
             };
 
-            await github.repos.createStatus(status);
+            await github1.repos.createStatus(status);
             // Set the workflow run ID as an output
             core.setOutput('workflow_run_id', process.env.WorkflowRunID);
 
