@@ -17,7 +17,7 @@ jobs:
         run: |
           title=${{ github.event.client_payload.pr_title }}
           description=${{ github.event.client_payload.pr_description }}
-          commits={{ github.event.client_payload.pr_commits }}
+          commits=${{ github.event.client_payload.pr_commits }}
           
           echo "PR Title: $title"
           echo "PR Description: $description"
