@@ -1,3 +1,4 @@
+
 name: PR Title, Description, and Commit Messages Validation
 
 on:
@@ -10,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Get PR Title, Description, and Commits
         run: |
           title=${{ github.event.client_payload.pr_title }}
