@@ -65,6 +65,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            await github.repos.createStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: github.sha,
+              state: 'success',
+              context: 'PR Validation',
+              description: 'Validation completed',
+            })
             // Set the workflow run ID as an output
             core.setOutput('workflow_run_id', process.env.WorkflowRunID);
 
