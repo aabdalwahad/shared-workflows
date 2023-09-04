@@ -48,39 +48,10 @@ jobs:
             exit 1
           fi
 
-
-      - name: Set Workflow Run ID as an Output
-        id: set_workflow_run_id
-        run: echo "WorkflowRunID=${{ github.run_id }}" >> $GITHUB_ENV
-
       - name: Set Status Check
         if: ${{ failure() }}
         run: |
           echo "The PR title, description, or commit message validation failed."
           echo "::error::Validation failed"
-
-      - name: Report Workflow Status
-        if: ${{ always() }}
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-             const { context, github } = require('@actions/github');
-
-             const status = {
-               ...context.repo,
-               sha: context.sha,
-               state: 'failure', // Set to 'success' or 'failure' based on your conditions
-               context: 'PR Validation',
-               description: 'Validation completed',
-              };
-      
-              await github.actions.createOrUpdateWorkflowRun({
-               ...context.repo,
-               run_id: context.runId,
-               status: status.state,
-              });
-              // Set the workflow run ID as an output
-              core.setOutput('workflow_run_id', process.env.WorkflowRunID);
 
 
