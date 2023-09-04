@@ -14,7 +14,7 @@ jobs:
       - name: Get PR Title, Description, and Commits
         run: |
           
-          title=${{ github.event.client_payload.pr_title }}
+          title=""
           description=${{ github.event.client_payload.pr_description }}
           commits=${{ github.event.client_payload.pr_commits }}
           
