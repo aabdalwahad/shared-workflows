@@ -48,6 +48,11 @@ jobs:
             exit 1
           fi
 
+
+      - name: Set Workflow Run ID as an Output
+        id: set_workflow_run_id
+        run: echo "WorkflowRunID=${{ github.run_id }}" >> $GITHUB_ENV
+
       - name: Set Status Check
         if: ${{ failure() }}
         run: |
