@@ -5,6 +5,10 @@ on:
     types:
       - trigger-pr-validation
 
+jobs:
+  validate_pr:
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
