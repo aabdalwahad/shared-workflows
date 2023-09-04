@@ -52,5 +52,4 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "The PR title, description, or commit message validation failed."
-          echo "::set-output name=status::failure"
-          exit 1
+          echo "::error::Validation failed"
