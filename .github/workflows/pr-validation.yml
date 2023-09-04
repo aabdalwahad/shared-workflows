@@ -15,13 +15,13 @@ jobs:
 
       - name: Get PR Title, Description, and Commits
         run: |
-          title=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          title=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}" \
                  "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}" \
                  | jq -r '.title')
-          description=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          description=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}" \
                        "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}" \
                        | jq -r '.body')
-          commits=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          commits=$(curl -s -H "Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}" \
                    "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.client_payload.pr_number }}/commits" \
                    | jq -r '.[].commit.message')
           
@@ -66,18 +66,3 @@ jobs:
         run: |
           echo "The PR title, description, or commit message validation failed."
           exit 1
-
-      - name: Report Workflow Status
-        if: always()
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.repos.createStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: github.sha,
-              state: ${{ job.status }} == 'success' ? 'success' : 'failure',
-              context: 'PR Validation',
-              description: 'Validation completed',
-            })
